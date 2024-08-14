@@ -1,0 +1,128 @@
+#!/bin/bash
+# init
+
+scriptname="$(realpath $0)"
+dev="/dev/sr0"
+ripdir="/dev/shm/cache/"
+red="$(tput setaf 1)"
+bold="$(tput bold)"
+tput0="$(tput sgr0)"
+
+editscript(){
+  local scriptpath script path swp; scriptpath=$(realpath "$0" 2>/dev/null); script="${scriptpath##*/}"; path="${scriptpath%/*}"; swp="$path/.$script.swp"
+     [[ ! -e "$swp" ]] && printf "\n\n%s\n\n" "$swp" && (/usr/bin/nano "$scriptpath") && exit
+     printf "\n%s is already being edited.\n%s exists; try fg or look in another window.\n" "$scriptpath" "$swp"; exit ;}
+
+pause(){ read -rp "$*" ; }
+
+getdev(){
+ [[ "${scriptname##*/}" == cdrip ]] && dev="/dev/sr0"
+ [[ "${scriptname##*/}" == cdrip1 ]] && dev="/dev/sr1"
+pause "$dev"
+}
+
+cdcheck(){
+ while true; do
+    cdinfo=$(setcd -i "$dev")
+    case "$cdinfo" in
+        *'Disc found'*)
+            echo; echo "Drive closed and cd present!"; echo; break;
+            ;;
+        *'not ready'*)
+            echo; echo '(waiting for drive to be ready)' ; echo; >&2;
+            /bin/sleep 3;
+            ;;
+        *'is open'*)
+            echo '(drive is open)' >&2;
+            eject -t "$dev"; /bin/sleep 5;
+            ;;
+        *)
+            printf 'Confused by setcd -i, bailing out:\n%s\n' "$cdinfo" &2
+            exit 1
+    esac
+ done
+}
+
+
+checkdep(){
+ ! eval command -v cdparanoia || ! eval command -v setcd || ! eval command -v cd-discid || ! eval command -v flac &&
+ printf 'The following dependencies are required to run cdrip: cdparanoia, setcd, flac, and cd-discid; picard is called at the end but not necessary\n' &&
+ printf 'Check the dependencies and try again...\n' &&
+ exit 1
+}
+
+[[ "$1" = @(edit|e|-e) ]] && editscript
+
+[[ "$1" = -y ]] && force=true && shift
+
+[[ -d "$ripdir" ]] || mkdir -p "$ripdir"
+
+getdev
+
+echo "Closing CD tray (if open)..."
+eject -t "$dev"
+
+echo
+echo "Checking for CD ..."
+
+cdcheck
+
+cdparanoia -Q -d "$dev"
+
+echo
+echo
+#read -p "Number of tracks?  " -r -n 2 tracks
+#requires cd-discid
+tracks="$(cd-discid)"; tracks="${tracks#* }" ; tracks="${tracks%% *}"
+echo
+[[ "$1" ]] && name="$1" || read -p "File name?  " name
+echo
+echo "There are $tracks tracks.  The files will be named "$name"-{01.."$tracks"}.flac in "$ripdir""$name""
+
+
+
+
+mkdirout="$(mkdir "$ripdir$name" 2>&1)"
+#mkdirout=${mkdirout="$(mkdir "$ripdir$name" 2>&1)"}  #don't quote?
+
+#[[ -z "$mkdirout" ]] && unset mkdirout
+
+#[[ -z "$mkdirout" ]] && unset mkdirout
+
+printf '\n%s%s%s%s' ${mkdirout:+"$bold"} ${mkdirout:+"$red"} "${mkdirout:-"Directory created"}" "$tput0"
+
+cd "$ripdir$name"
+echo
+echo
+echo "PWD:  "$PWD
+echo
+echo
+ls -alF
+echo
+echo
+[[ ! "$force" ]] && pause 'Press [Enter] key to continue...'
+echo
+echo
+
+cdparanoia -B -d "$dev"
+
+for ((i=1; i<=tracks; i++)); do      #C-style bash for loop with i counter
+    printf -v trackno %02d "$i"      #defines $trackno variable
+    if [[ -f "track$trackno.cdda.wav" ]]; then
+      flac -8 "track$trackno.cdda.wav" -o "$name-$trackno.flac" && rm "track$trackno.cdda.wav"
+    else
+      printf 'Track %s: file track%s.cdda.wav not found\n' "$trackno" "$trackno"
+      if "$force"; then
+        printf 'Failed to find all tracks on cd; investigate. (exit 1)'
+        exit 1
+      fi
+    fi
+done
+
+
+if [ -f "track00.cdda.wav" ]; then rm track00.cdda.wav; fi
+
+eval command -v picard && picard . -e LOOKUP_CD "$dev" 2>/dev/null &
+
+{ sleep 10s && eject "$dev" ; }&
+
