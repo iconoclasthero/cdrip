@@ -47,7 +47,7 @@ cdcheck(){
 
 checkdep(){
   if "$force"; then
-    apt -y install cdparanoia setcd flac cd-discid
+    sudo apt -y install cdparanoia setcd flac cd-discid
   fi
   ! eval command -v cdparanoia || ! eval command -v setcd || ! eval command -v cd-discid || ! eval command -v flac &&
  printf 'The following dependencies are required to run cdrip: cdparanoia, setcd, flac, and cd-discid; picard is called at the end but not necessary\n' &&
