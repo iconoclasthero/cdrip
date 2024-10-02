@@ -7,6 +7,7 @@ ripdir="/dev/shm/cache/"
 red="$(tput setaf 1)"
 bold="$(tput bold)"
 tput0="$(tput sgr0)"
+force="false"
 
 editscript(){
   local scriptpath script path swp; scriptpath=$(realpath "$0" 2>/dev/null); script="${scriptpath##*/}"; path="${scriptpath%/*}"; swp="$path/.$script.swp"
@@ -47,7 +48,8 @@ checkdep(){
   if "$force"; then
     sudo apt -y install cdparanoia setcd flac cd-discid
   fi
-  ! eval command -v cdparanoia || ! eval command -v setcd || ! eval command -v cd-discid || ! eval command -v flac &&
+#  { ! eval command -v cdparanoia || ! eval command -v setcd || ! eval command -v cd-discid || ! eval command -v flac ; } >/dev/null &&
+ { ! command -v cdparanoia || ! command -v setcd || ! command -v cd-discid || ! command -v flac ; } >/dev/null &&
  printf 'The following dependencies are required to run cdrip: cdparanoia, setcd, flac, and cd-discid; picard is called at the end but not necessary\n' &&
  printf 'Check the dependencies and try again or run with -y to call apt...\n' &&
  exit 1
@@ -99,7 +101,7 @@ cd "$ripdir$name"
 printf \\nPWD\:\ %s\\n\\n "$PWD"
 ls -alF
 printf \\n\\n
-[[ ! "$force" ]] && pause 'Press [Enter] key to continue...'
+! "$force" && pause 'Press [Enter] key to continue...'
 printf \\n\\n
 
 cdparanoia -B -d "$dev"
