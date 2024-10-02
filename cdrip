@@ -16,10 +16,8 @@ editscript(){
 pause(){ read -rp "$*" ; }
 
 getdev(){
-pause "$0"
  [[ "${0##*/}" == cdrip ]] && dev="/dev/sr0"
  [[ "${0##*/}" == cdrip1 ]] && dev="/dev/sr1"
-pause "$dev"
 }
 
 cdcheck(){
