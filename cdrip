@@ -46,9 +46,10 @@ cdcheck(){
 
 
 checkdep(){
- ! eval command -v cdparanoia || ! eval command -v setcd || ! eval command -v cd-discid || ! eval command -v flac &&
+  if "$force"; then apt install cdparanoia setcd flac cd-discid -y; fi
+  ! eval command -v cdparanoia || ! eval command -v setcd || ! eval command -v cd-discid || ! eval command -v flac &&
  printf 'The following dependencies are required to run cdrip: cdparanoia, setcd, flac, and cd-discid; picard is called at the end but not necessary\n' &&
- printf 'Check the dependencies and try again...\n' &&
+ printf 'Check the dependencies and try again or run with -y to call apt...\n' &&
  exit 1
 }
 
@@ -58,7 +59,8 @@ checkdep(){
 
 [[ -d "$ripdir" ]] || mkdir -p "$ripdir"
 
-checkdep
+checkdep "$force"
+
 getdev
 
 echo "Closing CD tray (if open)..."
