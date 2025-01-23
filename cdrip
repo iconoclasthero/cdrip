@@ -126,7 +126,7 @@ done
 
 if [ -f "track00.cdda.wav" ]; then rm track00.cdda.wav; fi
 
-eval command -v picard && picard . -e LOOKUP_CD "$dev" 2>/dev/null &
+eval command -v picard && picard . -e cluster -e scan clustered -e LOOKUP_CD "$dev" 2>/dev/null &
 
 { sleep 10s && eject "$dev" ; }&
 
