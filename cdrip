@@ -59,7 +59,11 @@ checkdep(){
 
 [[ "$1" = -y ]] && force=true && shift
 
+[[ "$1" = -d ]] && dev="$2" && shift 2
+
 [[ -d "$ripdir" ]] || mkdir -p "$ripdir"
+
+
 
 checkdep "$force"
 
