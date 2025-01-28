@@ -128,7 +128,7 @@ cd "$outdir"
 # todo: remove -p above and confirm using an existing directory instead of assuming overwrite.
 if (( ec )); then
   if [[ "$mkdirout" = "mkdir: cannot create directory ‘$outdir’: File exists" ]]; then
-    printf '%s[%sWARN%s] Output directory "%s%s%s" exits, review below!%s\n' "$bold" "$yellow" "$white" "$yellow" "$outdir" "$white" "$tput0"
+    printf '[%s%sWARN%s] Output directory "%s%s%s%s" exits, review below!\n' "$bold" "$yellow" "$tput0" "$bold" "$yellow" "$outdir" "$tput0"
     outdirexit=true
     ls -alF --color=always
   else
