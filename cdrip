@@ -5,11 +5,10 @@
 
 scriptname="$(realpath $0)"
 dev="/dev/sr0"
-ripdir="/dev/shm/cache/"
+ripdir="/dev/shm/cache"
 red="$(tput setaf 1)"
 bold="$(tput bold)"
 tput0="$(tput sgr0)"
-force="false"
 
 getdev(){
  [[ "${0##*/}" = cdrip ]] && dev="/dev/sr0"
@@ -17,7 +16,7 @@ getdev(){
 }
 
 cdcheck(){
- while true; do
+  while true; do
     cdinfo=$(setcd -i "$dev")
     case "$cdinfo" in
         *'Disc found'*)
@@ -57,32 +56,41 @@ checkdep(){
 
 [[ "$1" = -d ]] && dev="$2" && shift 2
 
-[[ -d "$ripdir" ]] || mkdir -p "$ripdir"
+if [[ ! -d "$ripdir" ]]; then
+  mkdir -p "$ripdir"
+  ec="$?"
+  (( ec )) && { printf 'Failed to create parent rip directory: "%s".\n(exit 1)' "$ripdir"; exit 1; }
+fi
 
-checkdep "$force"
+checkdep "${force:=false}"
 
 getdev
 
-echo "Closing CD tray (if open)..."
+printf 'Closing CD tray (if open)...\n'
 eject -t "$dev"
 
-echo
-echo "Checking for CD ..."
+printf '\nChecking for CD ...\n'
 
 cdcheck
 
 cdparanoia -Q -d "$dev"
 
-#requires cd-discid
 tracks="$(cd-discid $dev)"; tracks="${tracks#* }"; tracks="${tracks%% *}"
 printf \\n\\n
 [[ "$1" ]] && name="$1" || read -p "File name?  " name
 #echo "There are $tracks tracks.  The files will be named "$name"-{01.."$tracks"}.flac in "$ripdir""$name""
 printf '\nThere are %s tracks.  The files will be named "%s-{01..%s}.flac" in "%s%s"' "$tracks" "$name" "$tracks" "$ripdir" "$name"
 
+optputdir="$ripdir/$name"
 mkdirout="$(mkdir "$ripdir$name" 2>&1)"
+ec="$?"
 
-printf '\n%s%s%s%s' "${mkdirout:+"$bold"}" "${mkdirout:+"$red"}" "${mkdirout:-"Directory created"}" "$tput0"
+if (( ec )); then
+  printf '\n[%sERROR%s] mkdir %s%s resulted in non-zero exit code:\n%s: %s(exit 1)' "$red$bold" "$tput0" "$ec" "$mkdirout"
+  exit 1
+else
+  printf '\n%s%sDirectory %s%s created%s' "$bold" "$red" "$ripdir" "$name" "$tput0"
+fi
 
 cd "$ripdir$name"
 printf \\nPWD\:\ %s\\n\\n "$PWD"
