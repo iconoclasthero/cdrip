@@ -93,27 +93,33 @@ tracks="$(cd-discid $dev)"; tracks="${tracks#* }"; tracks="${tracks%% *}"
 printf \\n
 [[ "$name" ]] || read -p "File name? " name
 
-outputdir="$ripdir/$name"
-mkdirout="$(mkdir "$outputdir" 2>&1)"
+outdir="$ripdir/$name"
+mkdirout="$(mkdir "$outdir" 2>&1)"
 ec="$?"
 
 # todo: remove -p above and confirm using an existing directory instead of assuming overwrite.
 if (( ec )); then
-  if [[ "$mkdirout" = "mkdir: cannot create directory ‘$outputdir’: File exists" ]]; then
-    printf '%s[%sWARN%s] Output directory "%s%s%s" exits, review below!%s' "$bold" "$yellow" "$white" "$yellow" "$outputdir" "$white" "$tput0"
+  if [[ "$mkdirout" = "mkdir: cannot create directory ‘$outdir’: File exists" ]]; then
+    printf '%s[%sWARN%s] Output directory "%s%s%s" exits, review below!%s' "$bold" "$yellow" "$white" "$yellow" "$outdir" "$white" "$tput0"
+    outdirexit=true
   else
     printf '\n[%s%sERROR%s] mkdir resulted in non-zero exit code:\nexit %s: %s\n(exit 1)\n' "$red" "$bold" "$tput0" "$ec" "$mkdirout"
     exit 1
   fi
 else
-  printf '%sDirectory %s"%s"%s created.%s' "$bold" "$yellow" "$outputdir" "$white" "$tput0"
+  printf '%sDirectory %s"%s"%s created.%s' "$bold" "$yellow" "$outdir" "$white" "$tput0"
 fi
 
-printf '\n\nThere are %s tracks.\nThe files will be named "%s%s-{01..%s}.flac%s" in "%s%s%s"\n' "$tracks" "$yellow$bold" "$name" "$tracks" "$tput0" "$yellow$bold" "$outputdir" "$tput0"
+printf '\n\nThere are %s tracks.\nThe files will be named "%s%s-{01..%s}.flac%s" in "%s%s%s"\n' "$tracks" "$yellow$bold" "$name" "$tracks" "$tput0" "$yellow$bold" "$outdir" "$tput0"
 
-cd "$outputdir"
+cd "$outdir"
 #db printf \\nPWD\:\ %s\\n\\n "$PWD"
-ls -alF
+
+if "${outdirexit:=false}"; then
+  printf '\nOutput directory exists. Overwrite the contents?\n'
+  command -v eza && eza -l --color=always || ls -l --color=always
+fi
+
 printf \\n\\n
 ! "$force" && pause 'Press [Enter] key to continue...'
 printf \\n\\n
