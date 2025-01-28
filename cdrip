@@ -96,11 +96,13 @@ printf \\n
 outdir="$ripdir/$name"
 mkdirout="$(mkdir "$outdir" 2>&1)"
 ec="$?"
+cd "$outdir"
+#db printf \\nPWD\:\ %s\\n\\n "$PWD"
 
 # todo: remove -p above and confirm using an existing directory instead of assuming overwrite.
 if (( ec )); then
   if [[ "$mkdirout" = "mkdir: cannot create directory ‘$outdir’: File exists" ]]; then
-    printf '%s[%sWARN%s] Output directory "%s%s%s" exits, review below!%s' "$bold" "$yellow" "$white" "$yellow" "$outdir" "$white" "$tput0"
+    printf '%s[%sWARN%s] Output directory "%s%s%s" exits, review below!%s\n' "$bold" "$yellow" "$white" "$yellow" "$outdir" "$white" "$tput0"
     outdirexit=true
     ls -alF --color=always
   else
@@ -113,8 +115,6 @@ fi
 
 printf '\n\nThe %s tracks will be named "%s%s-{01..%s}.flac%s" in "%s%s%s"\n' "$tracks" "$yellow$bold" "$name" "$tracks" "$tput0" "$yellow$bold" "$outdir" "$tput0"
 
-cd "$outdir"
-#db printf \\nPWD\:\ %s\\n\\n "$PWD"
 
 #if "${outdirexit:=false}"; then
 #  printf '\n%s%sOutput directory exists; contents will be overwritten!%s\n' "$bold" "$yellow" "$tput0"
