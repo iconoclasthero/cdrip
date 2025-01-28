@@ -128,12 +128,12 @@ cd "$outdir"
 # todo: remove -p above and confirm using an existing directory instead of assuming overwrite.
 if (( ec )); then
   if [[ "$mkdirout" = "mkdir: cannot create directory ‘$outdir’: File exists" ]]; then
-    printf '[%s%sWARN%s] Output directory "%s%s%s%s" exits, review below!\n' "$bold" "$yellow" "$tput0" "$bold" "$yellow" "$outdir" "$tput0"
-    outdirexit=true
     files=(*)
     if [[ "$files" = '*' ]]; then
-      ls -alF --color=always
+       printf 'Directory %s exists but is empty, continuing...' "$outdir"
+#      ls -alF --color=always
     else
+      printf '[%s%sWARN%s] Output directory "%s%s%s%s" exits, review below!\n' "$bold" "$yellow" "$tput0" "$bold" "$yellow" "$outdir" "$tput0"
       command -v eza &>/dev/null && eza --color=always -la -sold -r --no-user || ls -alF --color=always
     fi
   else
