@@ -110,7 +110,7 @@ else
   printf '%sDirectory %s"%s"%s created.%s' "$bold" "$yellow" "$outdir" "$white" "$tput0"
 fi
 
-printf '\n\nThere are %s tracks.\nThe files will be named "%s%s-{01..%s}.flac%s" in "%s%s%s"\n' "$tracks" "$yellow$bold" "$name" "$tracks" "$tput0" "$yellow$bold" "$outdir" "$tput0"
+printf '\n\nThe %s tracks will be named "%s%s-{01..%s}.flac%s" in "%s%s%s"\n' "$tracks" "$yellow$bold" "$name" "$tracks" "$tput0" "$yellow$bold" "$outdir" "$tput0"
 
 cd "$outdir"
 #db printf \\nPWD\:\ %s\\n\\n "$PWD"
