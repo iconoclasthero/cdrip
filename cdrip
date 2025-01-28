@@ -80,19 +80,6 @@ checkdep "${force:=false}"
 
 getdev
 
-#ckdevout="$(setcd -i "$dev")"
-#ec1="$?"
-#[[ "$ckdevout" = *\ is\ open ]] && printf 'Closing CD tray...\n' && { ejectout="$(eject -t "$dev" &> )"; ec2="$?"; }
-#if [[ "$ckdevout" = Can\''t open device: No such file or directory' ]]; then error...
-#((ec1|ec2)) && if [[ "$ejectout" = 'eject: CD-ROM tray close command failed: No such file or directory' ]]; then
-#    printf '[%s%sWARN%s] eject reported CD-ROM tray close command failed\nContinuing...' "$bold" "$yellow" "$tput0"
-#  elif [[ "$ejectout" = 'eject: '*': not found mountpoint or device with the given name: command not found' ]]; then
-#    printf '[%s%sERROR%s] eject did not recognize the CD-ROM device "%s".\nThis likely means that it does not exist and this script will fail.\nCheck the device and try again. (exit 1)' "$bold" "$red" "$tput0"
-#    exit 1
-#  else
-#    printf '[%s%sWARN%s] eject reported an error:\n%s\n Attempting to continue...' "$bold" "$yellow" "$tput0"
-#  fi
-
 ckdevout="$(setcd -i "$dev")"
 ec1="$?"
 
@@ -108,7 +95,7 @@ fi
 
 if (( ec1 || ec2 )); then
   if [[ "$ejectout" = 'eject: CD-ROM tray close command failed: No such file or directory' ]]; then
-    printf '[%s%sWARN%s] eject reported CD-ROM tray close command failed.\nContinuing...\n' \
+    printf '[%s%sWARN%s] eject reported CD-ROM tray close command failed.\nManually close while continuing...\n' \
       "$bold" "$yellow" "$tput0"
   elif [[ "$ejectout" = 'eject: '*': not found mountpoint or device with the given name: command not found' ]]; then
     printf '[%s%sERROR%s] eject did not recognize the CD-ROM device "%s".\nThis likely means it does not exist.\nCheck the device and try again. (exit 1)\n' \
