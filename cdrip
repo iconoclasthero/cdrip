@@ -7,6 +7,7 @@ scriptname="$(realpath $0)"
 dev="/dev/sr0"
 ripdir="/dev/shm/cache"
 red="$(tput setaf 1)"
+yellow="$(tput setaf 3)"
 bold="$(tput bold)"
 tput0="$(tput sgr0)"
 
@@ -89,7 +90,7 @@ if (( ec )); then
   printf '\n[%sERROR%s] mkdir %s%s resulted in non-zero exit code:\n%s: %s(exit 1)' "$red$bold" "$tput0" "$ec" "$mkdirout"
   exit 1
 else
-  printf '\n%s%sDirectory %s%s created%s' "$bold" "$red" "$ripdir" "$name" "$tput0"
+  printf '\n%s%sDirectory %s/%s created%s' "$bold" "$yellow" "$ripdir" "$name" "$tput0"
 fi
 
 cd "$ripdir$name"
