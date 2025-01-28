@@ -33,7 +33,7 @@ cdcheck(){
             printf '\n(drive is open)\n' >&2
             ejectout="$(eject -t "$dev" 2>&1)"
             [[ "$ejectout" = 'eject: CD-ROM tray close command failed: No such file or directory' ]] &&
-              printf '\n[%s%sWARN%s] eject reported CD-ROM tray close command failed.\n\n%s%sManually close while continuing...%s\n' "$bold" "$yellow" "$tput0" "$bold" "$red" "$tput0"
+              printf '\n[%s%sWARN%s] eject reported CD-ROM tray close command failed.\n\n%s%sManually close drive...%s\n' "$bold" "$yellow" "$tput0" "$bold" "$yellow" "$tput0"
             /usr/bin/sleep 5
             ;;
         *)
@@ -98,7 +98,7 @@ fi
 if (( ec1 || ec2 )); then
   if [[ "$ejectout" = 'eject: CD-ROM tray close command failed: No such file or directory' ]]; then
     printf '\n[%s%sWARN%s] eject reported CD-ROM tray close command failed.\n\n%s%sManually close while continuing...%s\n' \
-      "$bold" "$yellow" "$tput0" "$bold" "$red" "$tput0"
+      "$bold" "$yellow" "$tput0" "$bold" "$yellow" "$tput0"
   elif [[ "$ejectout" = 'eject: '*': not found mountpoint or device with the given name: command not found' ]]; then
     printf '[%s%sERROR%s] eject did not recognize the CD-ROM device "%s".\nThis likely means it does not exist.\nCheck the device and try again. (exit 1)\n' \
       "$bold" "$red" "$tput0" "$dev"
