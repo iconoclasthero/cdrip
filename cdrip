@@ -94,13 +94,17 @@ printf \\n
 [[ "$name" ]] || read -p "File name? " name
 
 outputdir="$ripdir/$name"
-mkdirout="$(mkdir -p "$outputdir" 2>&1)"
+mkdirout="$(mkdir "$outputdir" 2>&1)"
 ec="$?"
 
 # todo: remove -p above and confirm using an existing directory instead of assuming overwrite.
 if (( ec )); then
-  printf '\n[%s%sERROR%s] mkdir resulted in non-zero exit code:\nexit %s: %s(exit 1)' "$red" "$bold" "$tput0" "$ec" "$mkdirout"
-  exit 1
+  if [[ "$mkdirout" = mkdir: cannot create directory ‘"$outputdir"/’: File exists ]]; then
+    printf '[WARN] Output directory "%s" exits, review below!' "$outputdir"
+  else
+    printf '\n[%s%sERROR%s] mkdir resulted in non-zero exit code:\nexit %s: %s(exit 1)' "$red" "$bold" "$tput0" "$ec" "$mkdirout"
+    exit 1
+  fi
 else
   printf '%sDirectory %s"%s"%s created.%s' "$bold" "$yellow" "$outputdir" "$white" "$tput0"
 fi
