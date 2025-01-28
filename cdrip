@@ -100,7 +100,7 @@ ec="$?"
 # todo: remove -p above and confirm using an existing directory instead of assuming overwrite.
 if (( ec )); then
   if [[ "$mkdirout" = "mkdir: cannot create directory ‘$outputdir’: File exists" ]]; then
-    printf '[WARN] Output directory "%s" exits, review below!' "$outputdir"
+    printf '%s[%sWARN%s] Output directory "%s%s%s" exits, review below!%s' "$bold" "$yellow" "$white" "$yellow" "$outputdir" "$white" "$tput0"
   else
     printf '\n[%s%sERROR%s] mkdir resulted in non-zero exit code:\nexit %s: %s\n(exit 1)\n' "$red" "$bold" "$tput0" "$ec" "$mkdirout"
     exit 1
