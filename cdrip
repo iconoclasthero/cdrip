@@ -116,12 +116,12 @@ cd "$outdir"
 #db printf \\nPWD\:\ %s\\n\\n "$PWD"
 
 if "${outdirexit:=false}"; then
-  printf '\nOutput directory exists. Overwrite the contents?\n'
+  printf '\nOutput directory exists; contents will be overwritten!\n'
 #  command -v eza &>/dev/null && eza -l --color=always || ls -alF --color=always
   ls -alF --color=always
 fi
 
-printf \\n\\n
+printf \\n
 ! "$force" && pause 'Press [Enter] key to continue...'
 printf \\n\\n
 
