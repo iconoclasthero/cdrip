@@ -66,7 +66,7 @@ helpout(){
 while (( $# > 0 )); do
   [[ "$1" = -y ]] && force=true && shift
   [[ "$1" = -d ]] && dev="$2" && shift 2
-  [[ "$1" =~ -h|--help ]] && helpout && exit 1
+  [[ "$1" =~ ^-(h|-help)$ ]] && helpout && exit 1
   [[ "$@" ]] && name="$@" && shift "$#"
 done
 
@@ -117,7 +117,8 @@ cd "$outdir"
 
 if "${outdirexit:=false}"; then
   printf '\nOutput directory exists. Overwrite the contents?\n'
-  command -v eza && eza -l --color=always || ls -l --color=always
+#  command -v eza &>/dev/null && eza -l --color=always || ls -alF --color=always
+  ls -alF --color=always
 fi
 
 printf \\n\\n
