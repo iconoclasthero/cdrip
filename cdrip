@@ -8,6 +8,7 @@ dev="/dev/sr0"
 ripdir="/dev/shm/cache"
 red="$(tput setaf 1)"
 yellow="$(tput setaf 3)"
+white="$(tput setaf 7)"
 bold="$(tput bold)"
 tput0="$(tput sgr0)"
 
@@ -101,7 +102,7 @@ if (( ec )); then
   printf '\n[%s%sERROR%s] mkdir resulted in non-zero exit code:\nexit %s: %s(exit 1)' "$red" "$bold" "$tput0" "$ec" "$mkdirout"
   exit 1
 else
-  printf '\n%s%sDirectory %s created%s' "$bold" "$yellow" "$outputdir" "$tput0"
+  printf '\n%sDirectory %s"%s"%s created%s' "$bold" "$yellow" "$white" "$outputdir" "$tput0"
 fi
 
 printf '\nThere are %s tracks.\nThe files will be named "%s-{01..%s}.flac" in "%s"' "$tracks" "$name" "$tracks" "$outputdir"
