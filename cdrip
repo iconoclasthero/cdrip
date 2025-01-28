@@ -130,10 +130,10 @@ if (( ec )); then
   if [[ "$mkdirout" = "mkdir: cannot create directory ‘$outdir’: File exists" ]]; then
     files=(*)
     if [[ "$files" = '*' ]]; then
-       printf 'Directory %s exists but is empty, continuing...' "$outdir"
+       printf 'Directory "%s" exists but is empty, continuing...' "$outdir"
 #      ls -alF --color=always
     else
-      printf '[%s%sWARN%s] Output directory "%s%s%s%s" exits, review below!\n' "$bold" "$yellow" "$tput0" "$bold" "$yellow" "$outdir" "$tput0"
+      printf '[%s%sWARN%s] Output directory "%s%s%s%s" exits, review below!\n\n' "$bold" "$yellow" "$tput0" "$bold" "$yellow" "$outdir" "$tput0"
       command -v eza &>/dev/null && eza --color=always -la -sold -r --no-user || ls -alF --color=always
     fi
   else
