@@ -100,7 +100,7 @@ if (( ec )); then
   printf '\n[%s%sERROR%s] mkdir %s%s resulted in non-zero exit code:\n%s: %s(exit 1)' "$red" "$bold" "$tput0" "$ec" "$mkdirout"
   exit 1
 else
-  printf '\n%s%sDirectory %s created%s' "$bold" "$yellow" "$outputdir" "$name" "$tput0"
+  printf '\n%s%sDirectory %s created%s' "$bold" "$yellow" "$outputdir" "$tput0"
 fi
 
 printf '\nThere are %s tracks.\nThe files will be named "%s-{01..%s}.flac" in "%s"' "$tracks" "$name" "$tracks" "$outputdir"
