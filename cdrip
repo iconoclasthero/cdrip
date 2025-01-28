@@ -105,10 +105,10 @@ else
   printf '%sDirectory %s"%s"%s created.%s' "$bold" "$yellow" "$outputdir" "$white" "$tput0"
 fi
 
-printf '\n\nThere are %s tracks.\nThe files will be named "%s-{01..%s}.flac" in "%s"' "$tracks" "$name" "$tracks" "$outputdir"
+printf '\n\nThere are %s tracks.\nThe files will be named "%s%s-{01..%s}.flac%s" in "%s%s%s"' "$tracks" "$yellow" "$name" "$tracks" "$white" "$yellow" "$outputdir" "$tput0"
 
 cd "$outputdir"
-printf \\nPWD\:\ %s\\n\\n "$PWD"
+#db printf \\nPWD\:\ %s\\n\\n "$PWD"
 ls -alF
 printf \\n\\n
 ! "$force" && pause 'Press [Enter] key to continue...'
