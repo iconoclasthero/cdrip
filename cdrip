@@ -12,6 +12,13 @@ white="$(tput setaf 7)"
 bold="$(tput bold)"
 tput0="$(tput sgr0)"
 
+cmd="${1:-$(basename "$BASH_COMMAND")}"
+printf 'cmd="${1:-$(basename "$BASH_COMMAND")}" %s\n' "$cmd"
+echo "\$0: $0"
+printf \{\$BASH_SOURCE[\@]\}\:\ %s\\n "${BASH_SOURCE[@]}"
+printf '$BASH_COMMAND: %s\n' "$BASH_COMMAND"
+read -rp "\$BASH_ARGV0: ${BASH_ARGV0}"
+
 getdev(){
  [[ "${0##*/}" = cdrip ]] && dev="/dev/sr0"
  [[ "${0##*/}" = cdrip1 ]] && dev="/dev/sr1"
@@ -19,7 +26,7 @@ getdev(){
 
 cdcheck(){
   while true; do
-    cdinfo=$(setcd -i "$dev")
+    cdinfo=$(setcd -i "$dev" 2>&1)
     case "$cdinfo" in
         *'Disc found'*)
             printf '\nDrive closed and cd present!\n\n'
@@ -37,7 +44,7 @@ cdcheck(){
             /usr/bin/sleep 5
             ;;
         *)
-            printf 'Confused by setcd -i, bailing out:\n%s\n' "$cdinfo" >&2
+            printf '\n[%s%sERROR%s] Confused by setcd -i:\n%s\nBailing out! (exit 1)\n\n' "$red" "$bold" "$tput0" "$cdinfo" >&2
             exit 1
     esac
  done
@@ -80,9 +87,9 @@ fi
 
 checkdep "${force:=false}"
 
-getdev
+#getdev
 
-ckdevout="$(setcd -i "$dev")"
+ckdevout="$(setcd -i "$dev" 2>&1)"
 ec1="$?"
 
 if [[ "$ckdevout" = *"is open"* ]]; then
