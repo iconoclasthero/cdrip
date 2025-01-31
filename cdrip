@@ -12,13 +12,6 @@ white="$(tput setaf 7)"
 bold="$(tput bold)"
 tput0="$(tput sgr0)"
 
-cmd="${1:-$(basename "$BASH_COMMAND")}"
-printf 'cmd="${1:-$(basename "$BASH_COMMAND")}" %s\n' "$cmd"
-echo "\$0: $0"
-printf \{\$BASH_SOURCE[\@]\}\:\ %s\\n "${BASH_SOURCE[@]}"
-printf '$BASH_COMMAND: %s\n' "$BASH_COMMAND"
-read -rp "\$BASH_ARGV0: ${BASH_ARGV0}"
-
 getdev(){
  [[ "${0##*/}" = cdrip ]] && dev="/dev/sr0"
  [[ "${0##*/}" = cdrip1 ]] && dev="/dev/sr1"
