@@ -8,20 +8,7 @@ scriptname="$(realpath $0)"
 
 #Functions
 
-scriptname=$(realpath "$0")
-
-#function editscript(){ if [ "$1" = "edit" ] || [ "$1" = "nano" ]; then (/usr/bin/nano "$scriptname"); exit; fi ; }
-function editscript(){
-  local script path; script="${scriptname##*/}"; path="${scriptname%/*}"; swp="$path/.$script.swp"
-  if [ "$1" = "edit" ] || [ "$1" = "nano" ]; then
-     if [[ ! -e "$swp" ]]; then printf "\n\n%s\n\n" "$swp"; (/usr/bin/nano "$scriptname"); exit
-     else printf "\n%s is already being edited.\n%s exists; try fg or look in another window.\n" "$scriptname" "$swp"; exit; fi;
-  fi; }
-
-function pause(){
-   read -p "$*"
-}
-
+. /usr/local/bin/editscript
 
 function cdcheck(){
  while true; do
@@ -50,10 +37,7 @@ function cdcheck(){
 
 editscript "$1"
 
-if [[ "$1" == "edit" ]]; then
- (/usr/bin/nano "$scriptname")
- exit
-fi
+[[ "$1" = @(-f|--flac) ]] && shift && flac=1
 
 if [ ! -d "$ripdir" ]; then
     mkdir "$ripdir"
@@ -122,7 +106,7 @@ cd "$disc"
 #cdparanoia -d "$dev" 1- "$wavname" && eject "$dev"
 cdparanoia -Bd "$dev" 1- && eject "$dev"
 opus.book.4 && concat "$bookpath/$basename"
-for i in *wav; do flac -8 "$i" && rm "$i"; done && concatflac "$bookpath/$basename"
+(( flac )) && for i in *wav; do flac -8 "$i" && rm "$i"; done && concatflac "$bookpath/$basename"
 #mv "$opusname" "$bookpath"
 #mv "$flacname" "$bookpath"
 mediaduration
