@@ -1,0 +1,117 @@
+#!/bin/bash
+# init
+
+#Variable declarations
+dev="/dev/sr1"
+ripdir="/dev/shm/cache/"
+
+#Functions
+function pause(){
+   read -p "$*"
+}
+
+
+function cdcheck(){
+ while true; do
+    cdinfo=$(setcd -i "$dev")
+    case "$cdinfo" in
+        *'Disc found'*)
+            printf '\n\nDrive closed and cd present!\n\n'; break;
+            ;;
+        *'not ready'*)
+            printf '\n\n(waiting for drive %s to be ready)\n' "$dev"; >&2;
+            /bin/sleep 3;
+            ;;
+        *'is open'*)
+            printf '\n\n(drive is open)' >&2;
+            eject -t "$dev"; /bin/sleep 5;
+            ;;
+        *)
+            printf '\n\nConfused by setcd -i, bailing out:\n%s\n' "$cdinfo" &2
+            exit 1
+    esac
+ done
+}
+
+#Main block:
+
+if [ ! -d "$ripdir" ]; then
+    mkdir "$ripdir"
+  if [ ! -d "$ripdir" ]; then
+   break
+  fi
+fi
+
+printf '\nUsing CD drive %s.\n' "$dev"
+
+printf '\nClosing CD tray (if open) ...\n'
+eject -t "$dev"
+printf '\nChecking for CD ...'
+
+cdcheck
+
+cdparanoia -d "$dev" -Q
+
+if [ "${1+x}" ]
+ then name="${1/\/}"; name="${name/\//}"
+ printf 'The book file name has been set to %s via the command line.\n' "$name"
+else
+ printf 'Rip directory contents:\n\n'
+ ls -Fw 1 "$ripdir"
+ printf '\n'
+ read -e -p "Book file name?  " name
+ name="${name/\/}"
+ name="${name/\//}"
+fi
+printf '\n'
+
+bookpath="$ripdir$name"
+
+if [ ! -d "$bookpath" ]; then
+  # Control will enter here if $DIRECTORY doesn't exist.
+  mkdir "$bookpath"
+fi
+cd "$bookpath"
+
+if [ "${2+x}" ]
+ then disc="$2"
+ printf 'The disc number has been set to %s via the command line.\n\n' "$disc"
+ ls -Flw 1 "$PWD"
+else
+ printf 'Directory of %s:\n' "$PWD"
+ ls -Flw 1 "$PWD"
+ printf '\n'
+ read -p 'Disc number?  ' -r -n 2 disc
+ printf '\n'
+fi
+
+wavname="$name -- Disc $disc.wav"
+opusname="$name -- Disc $disc.opus"
+printf '\noutput directory:  %s\n' "$PWD"
+printf '.wav file name  :  %s\n' "$wavname"
+printf '.opus file name :  %s\n' "$opusname"
+printf '\nConfirm the file will be named %s in %s ' "$opusname" "$bookpath"
+pause '... ?  '
+printf '\n\n'
+
+cdparanoia -d "$dev" 1- "$wavname" && eject "$dev";
+
+ffmpeg -loglevel warning -stats -n -i "$wavname" -acodec libopus -b:a 17k "$opusname" && mediainfo "$wavname" |grep "Complete name" && mediainfo "$wavname" |grep Duration && mediainfo "$opusname" |grep "Complete name" && mediainfo "$opusname" |grep Duration && rm "$wavname"
+
+
+
+
+#how to debug
+#set -x
+#trap read debug
+
+#for ((i=1; i<=tracks; i++));												#C-style bash for loop with i counter
+#	do
+#		printf -v trackno %02d "$i";										#defines $trackno variable
+#		flac -8 track"$trackno".cdda.wav -o "$name"-"$trackno".flac && rm track"$trackno".cdda.wav;
+#	done
+
+#if [ -f "track00.cdda.wav" ]; then rm track00.cdda.wav; fi
+
+#picard . &
+

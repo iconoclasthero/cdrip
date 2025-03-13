@@ -1,0 +1,117 @@
+#!/bin/bash
+# init
+
+dev="/dev/sr0"
+ripdir="/dev/shm/cache/"
+
+function pause(){
+   read -p "$*"
+}
+
+
+function cdcheck(){
+ while true; do
+    cdinfo=$(setcd -i "$dev")
+    case "$cdinfo" in
+        *'Disc found'*)
+            echo; echo "Drive closed and cd present!"; echo; break;
+            ;;
+        *'not ready'*)
+            echo; echo '(waiting for drive to be ready)' ; echo; >&2;
+            /bin/sleep 3;
+            ;;
+        *'is open'*)
+            echo '(drive is open)' >&2;
+            eject -t ; /bin/sleep 5;
+            ;;
+        *)
+            printf 'Confused by setcd -i, bailing out:\n%s\n' "$cdinfo" &2
+            exit 1
+    esac
+ done
+}
+
+if [ ! -d "$ripdir" ]; then
+    mkdir /dev/shm/cache
+fi
+
+cd "$ripdir"
+
+echo "Closing CD tray (if open)..."
+
+eject -t
+
+echo
+echo "Checking for CD ..."
+
+cdcheck
+
+cdparanoia -Q -d $dev
+
+if [ ${1+x} ]
+ then name="$1"
+else
+ echo
+ ls -alF $ripdir
+ echo
+ echo
+ read -e -p "Book file name?  " name
+ echo
+fi
+
+echo
+name="${name/\/}"
+bookpath=$ripdir$name
+
+if [ ! -d "$bookpath" ]; then
+  # Control will enter here if $DIRECTORY doesn't exist.
+  mkdir $bookpath
+fi
+
+cd $bookpath
+echo "Directory of $PWD:"
+ls -alF $PWD
+echo
+
+if [ ${2+x} ]
+ then disc=$2
+else
+ read -p "Disc number?  " -r -n 2 disc
+fi
+
+echo
+echo
+wavname="$name -- Disc $disc.wav"
+opusname="$name -- Disc $disc.opus"
+echo .wav file name:  $wavname
+echo .opus file name:  $opusname
+echo
+echo "PWD:  "$PWD
+echo
+ls -alF $PWD
+#ls -alF ..
+echo
+echo "The file will be named $opusname in $bookpath"
+echo
+pause 'Press [Enter] key to continue...'
+echo
+echo
+cdparanoia -d $dev 1- "$wavname" && eject;
+
+ffmpeg -loglevel warning -stats -n -i "$wavname" -acodec libopus -b:a 17k "$opusname" && rm "$wavname"
+
+
+
+#set -x
+#trap read debug
+
+#for ((i=1; i<=tracks; i++));												#C-style bash for loop with i counter
+#	do
+#		printf -v trackno %02d "$i";										#defines $trackno variable
+#		flac -8 track"$trackno".cdda.wav -o "$name"-"$trackno".flac && rm track"$trackno".cdda.wav;
+#	done
+
+#if [ -f "track00.cdda.wav" ]; then rm track00.cdda.wav; fi
+
+#picard . &
+

@@ -1,0 +1,154 @@
+#!/bin/bash
+# init
+
+#Variable declarations
+dev="/dev/sr0"
+ripdir="/dev/shm/cache/"
+scriptname="$(realpath $0)"
+
+#Functions
+
+scriptname=$(realpath "$0")
+
+#function editscript(){ if [ "$1" = "edit" ] || [ "$1" = "nano" ]; then (/usr/bin/nano "$scriptname"); exit; fi ; }
+function editscript(){
+  local script path; script="${scriptname##*/}"; path="${scriptname%/*}"; swp="$path/.$script.swp"
+  if [ "$1" = "edit" ] || [ "$1" = "nano" ]; then
+     if [[ ! -e "$swp" ]]; then printf "\n\n%s\n\n" "$swp"; (/usr/bin/nano "$scriptname"); exit
+     else printf "\n%s is already being edited.\n%s exists; try fg or look in another window.\n" "$scriptname" "$swp"; exit; fi;
+  fi; }
+
+function pause(){
+   read -p "$*"
+}
+
+
+function cdcheck(){
+ while true; do
+    cdinfo=$(setcd -i "$dev")
+    case "$cdinfo" in
+        *'Disc found'*)
+            printf '\n\nDrive closed and cd present!\n\n'; break;
+            ;;
+        *'not ready'*)
+            printf '\n\n(waiting for drive %s to be ready)\n' "$dev"; >&2;
+            /bin/sleep 3;
+            ;;
+        *'is open'*)
+            printf '\n\n(drive is open)' >&2;
+            eject -t "$dev"; /bin/sleep 5;
+            ;;
+        *)
+            printf '\n\nConfused by setcd -i, bailing out:\n%s\n' "$cdinfo" &2
+            exit 1
+    esac
+ done
+}
+
+
+#Main block:
+
+editscript "$1"
+
+if [[ "$1" == "edit" ]]; then
+ (/usr/bin/nano "$scriptname")
+ exit
+fi
+
+if [ ! -d "$ripdir" ]; then
+    mkdir "$ripdir"
+  if [ ! -d "$ripdir" ]; then
+   printf '\nError creating %s; exiting!' "$ripdir" &2
+   exit
+  fi
+fi
+
+printf '\nUsing CD drive %s.\n' "$dev"
+
+printf '\nClosing CD tray (if open) ...\n'
+eject -t "$dev"
+printf '\nChecking for CD ...'
+
+cdcheck
+
+cdparanoia -d "$dev" -Q
+
+if [ "${1+x}" ]
+ then name="${1/\/}"; name="${name/\//}"
+ printf 'The book file name has been set to %s via the command line.\n' "$name"
+else
+ printf 'Rip directory contents:\n\n'
+ ls -Fw 1 "$ripdir"
+ printf '\n'
+ read -e -p "Book file name?  " name
+ name="${name/\/}"
+ name="${name/\//}"
+fi
+printf '\n'
+
+bookpath="$ripdir$name"
+
+if [ ! -d "$bookpath" ]; then
+  # Control will enter here if $DIRECTORY doesn't exist.
+  mkdir "$bookpath"
+fi
+cd "$bookpath"
+
+if [[ "${2+x}" ]]
+ then disc="$2"
+ printf 'The disc number has been set to %s via the command line.\n\n' "$disc"
+ ls -Flw 1 "$PWD"
+else
+ printf 'Directory of %s:\n' "$PWD"
+ ls -Flw 1 "$PWD"
+ printf '\n'
+ read -rp 'Disc number?  ' -n2 disc
+ printf '\n'
+fi
+
+basename="$name -- Disc $disc"
+wavname="$name -- Disc $disc.wav"
+opusname="$name -- Disc $disc.opus"
+flacname="$name -- Disc $disc.flac"
+printf '\noutput directory:  %s\n' "$PWD"
+printf '.wav file name  :  %s\n' "$wavname"
+printf '.opus file name :  %s\n' "$opusname"
+printf '\nConfirm the file will be named %s in %s ' "$opusname" "$bookpath"
+pause '... ?  '
+printf '\n\n'
+
+mkdir "$disc"
+cd "$disc"
+#cdparanoia -d "$dev" 1- "$wavname" && eject "$dev"
+cdparanoia -Bd "$dev" 1- && eject "$dev"
+opus.book.4 && concat "$bookpath/$basename"
+for i in *wav; do flac -8 "$i" && rm "$i"; done && concatflac "$bookpath/$basename"
+#mv "$opusname" "$bookpath"
+#mv "$flacname" "$bookpath"
+mediaduration
+cd -
+mediainfo "$basename"*|grep Duration|uniq
+#rm -i *wav
+rmr "$disc"
+
+#ffmpeg -nostdin -loglevel warning -stats -n -i "$wavname" -acodec libopus -b:a 17k "$opusname" && mediainfo "$wavname" |grep "Complete name" && mediainfo "$wavname" |grep Duration && mediainfo "$opusname" |grep "Complete name" && mediainfo "$opusname" |grep Duration && rm "$wavname"
+#ffmpeg -nostdin -loglevel warning -stats -n -i "$wavname" -acodec libopus -b:a 17k -metadata album="$name" -metadata disc="$disc" -metadata comment="ripped by cdparanoia, encoded by ffmpeg/libopus 17kb/s" -metadata title="$name -- Disc $disc" "$opusname" &
+#ffmpeg -nostdin -loglevel warning -stats -n -i "$wavname" -acodec libopus -b:a 17k -metadata album="$name" -metadata disc="$disc" -metadata comment="ripped by cdparanoia, encoded by ffmpeg/libopus 17kb/s" -metadata title="$name -- Disc $disc" "$opusname" && mediainfo "$wavname" |grep "Complete name" && mediainfo "$wavname" |grep Duration && mediainfo "$opusname" |grep "Complete name" && mediainfo "$opusname" |grep Duration && rm "$wavname"
+
+
+
+
+#how to debug
+#set -x
+#trap read debug
+
+#for ((i=1; i<=tracks; i++));												#C-style bash for loop with i counter
+#	do
+#		printf -v trackno %02d "$i";										#defines $trackno variable
+#		flac -8 track"$trackno".cdda.wav -o "$name"-"$trackno".flac && rm track"$trackno".cdda.wav;
+#	done
+
+#if [ -f "track00.cdda.wav" ]; then rm track00.cdda.wav; fi
+
+#picard . &
+
